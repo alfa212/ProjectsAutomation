@@ -86,14 +86,12 @@ def create_groups(managers):
 
 def fill_groups(students, groups):
     filling_groups = groups
-    for group, group_details in filling_groups.items():
-        for student, student_details in students.items():
+    for group_details in filling_groups.values():
+        for student_details in students.values():
             if not student_details['grouped'] and len(group_details['group']) < 3:
                 group_details['group'].append(student_details['tg_username'])
                 student_details['grouped'] = True
     pprint(filling_groups)
-    pprint(students)
-
 
 
 def main():
