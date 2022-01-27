@@ -65,13 +65,13 @@ def get_managers(file):
 
 
 def create_groups(managers):
+    groups = {}
     for manager_name, manager_work_details in managers.items():
         time_from = manager_work_details['time_from']
         time_to = manager_work_details['time_to']
         tg_username = manager_work_details['tg_username']
         delta = dt.datetime.combine(dt.date(1, 1, 1), time_to) - dt.datetime.combine(dt.date(1, 1, 1), time_from)
         periods = delta.seconds // 3600 * 60 // 30
-        groups = {}
         for period in range(1, periods + 1):
             time_period_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from) + dt.timedelta(minutes=30)).time()
             groups[f'{manager_name}_{period}'] = {
@@ -81,7 +81,17 @@ def create_groups(managers):
                 'group': []
             }
             time_from = time_period_to
-        return groups
+    return groups
+
+
+def fill_groups(students, groups):
+    filling_groups = groups
+    for group, group_details in filling_groups.items():
+        for student, student_details in students.items():
+            if not student_details['grouped'] and len(group_details['group']) < 3:
+                group_details['group'].append(student_details['tg_username'])
+                student_details['grouped'] == True
+    pprint(filling_groups)
 
 
 
@@ -91,7 +101,7 @@ def main():
     students = get_students(students_file)
     managers = get_managers(managers_file)
     groups = create_groups(managers)
-
+    fill_groups(students, groups)
 
 if __name__ == '__main__':
     main()    
