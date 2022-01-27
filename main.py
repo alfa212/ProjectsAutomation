@@ -84,14 +84,18 @@ def create_groups(managers):
     return groups
 
 
+def get_student_level(tg_username, student):
+    if tg_username == student['tg_username']:
+        return student['level']
+
+
 def fill_groups(students, groups):
-    filling_groups = groups
-    for group_details in filling_groups.values():
+    for group_details in groups.values():
         for student_details in students.values():
             if not student_details['grouped'] and len(group_details['group']) < 3:
                 group_details['group'].append(student_details['tg_username'])
-                student_details['grouped'] = True
-    pprint(filling_groups)
+                student_details['grouped'] = True 
+    pprint(groups)
 
 
 def main():
