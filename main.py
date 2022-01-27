@@ -75,7 +75,8 @@ def create_groups(managers):
             time_period_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from) + dt.timedelta(minutes=30)).time()
             groups[f'{manager_name}_{period}'] = {
                 'product_manager': tg_username,
-                'time': f'{time_from} - {time_period_to}',
+                'time_from': time_from,
+                'time_to': time_period_to,
                 'group': []
             }
             time_from = time_period_to
