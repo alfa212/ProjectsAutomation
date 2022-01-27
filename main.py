@@ -90,16 +90,30 @@ def get_student_level(tg_username, student):
 
 
 def fill_groups(students, groups):
-    for group_details in groups.values():
-        for student_details in students.values():
-            if not student_details['grouped'] and (
-                len(group_details['group']) == 0 or student_details['level'] == get_student_level(group_details['group'][0], student_details)):
-                group_details['group'].append(student_details['tg_username'])
-                student_details['grouped'] = True 
-            elif group_details['group'] and student_details['level'] == get_student_level(group_details['group'][0], student_details):
-                group_details['group'].append(student_details['tg_username'])
-                student_details['grouped'] = True 
-    pprint(groups)
+    # for group_details in groups.values():
+    #     for student_details in students.values():
+    #         if not student_details['grouped'] and (
+    #             len(group_details['group']) == 0 or student_details['level'] == get_student_level(group_details['group'][0], student_details)):
+    #             group_details['group'].append(student_details['tg_username'])
+    #             student_details['grouped'] = True
+    #         elif group_details['group'] and student_details['level'] == get_student_level(group_details['group'][0], student_details):
+    #             group_details['group'].append(student_details['tg_username'])
+    #             student_details['grouped'] = True
+    # pprint(groups)
+
+    novice_students = []
+    novice_plus_students = []
+    junior_students = []
+    for students_details in students.values():
+        if students_details['level'] == 'novice':
+            novice_students.append(students_details)
+        elif students_details['level'] == 'novice+':
+            novice_plus_students.append(students_details)
+        junior_students.append(students_details)
+
+    pprint(novice_students)
+    pprint(novice_plus_students)
+    pprint(junior_students)
 
 
 def main():
