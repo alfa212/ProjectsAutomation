@@ -90,8 +90,9 @@ def fill_groups(students, groups):
         for student, student_details in students.items():
             if not student_details['grouped'] and len(group_details['group']) < 3:
                 group_details['group'].append(student_details['tg_username'])
-                student_details['grouped'] == True
+                student_details['grouped'] = True
     pprint(filling_groups)
+    pprint(students)
 
 
 
