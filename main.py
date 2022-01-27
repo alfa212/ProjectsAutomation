@@ -42,6 +42,7 @@ def get_students(file):
             'is_far_east': is_far_east,
             'time_from': time_from,
             'time_to': time_to,
+            'grouped' : False,
         }
     return all_students
 
@@ -80,7 +81,7 @@ def create_groups(managers):
                 'group': []
             }
             time_from = time_period_to
-        pprint(groups)
+        return groups
 
 
 
@@ -89,7 +90,7 @@ def main():
     managers_file = 'managers.json'
     students = get_students(students_file)
     managers = get_managers(managers_file)
-    create_groups(managers)
+    groups = create_groups(managers)
 
 
 if __name__ == '__main__':
