@@ -203,5 +203,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(LonelyStudent)
 class LonelyStudentAdmin(admin.ModelAdmin):
-    list_display = ('project', 'student')
+    list_display = ('project', 'link_to_student', 'show_student_time')
     list_filter = ['project']
+
+    def link_to_student(self, obj):
+        link = reverse("admin:automation_student_change", args=[obj.student.tg_username])
+        return format_html('<a href="{}">{}</a>', link, str(obj.student))
+    link_to_student.short_description = 'Студент'
+
+    def show_student_time(self, obj):
+        return obj.student.time
+    show_student_time.short_description = 'Удобное время'
