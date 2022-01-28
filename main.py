@@ -33,8 +33,8 @@ def get_students(file):
         tg_username = student['tg_username']
         discord_username = student['discord_username']
         is_far_east = student['is_far_east']
-        time_from = student['time_from']
-        time_to = student['time_to']
+        time_from = dt.datetime.strptime(student['time_from'], '%H:%M').time()
+        time_to = dt.datetime.strptime(student['time_to'], '%H:%M').time()
         all_students[f'{name}'] = {
             'level': level,
             'tg_username': tg_username,
@@ -84,23 +84,7 @@ def create_groups(managers):
     return groups
 
 
-def get_student_level(tg_username, student):
-    if tg_username == student['tg_username']:
-        return student['level']
-
-
-def fill_groups(students, groups):
-    # for group_details in groups.values():
-    #     for student_details in students.values():
-    #         if not student_details['grouped'] and (
-    #             len(group_details['group']) == 0 or student_details['level'] == get_student_level(group_details['group'][0], student_details)):
-    #             group_details['group'].append(student_details['tg_username'])
-    #             student_details['grouped'] = True
-    #         elif group_details['group'] and student_details['level'] == get_student_level(group_details['group'][0], student_details):
-    #             group_details['group'].append(student_details['tg_username'])
-    #             student_details['grouped'] = True
-    # pprint(groups)
-
+def get_students_level(students):
     novice_students = []
     novice_plus_students = []
     junior_students = []
@@ -110,10 +94,15 @@ def fill_groups(students, groups):
         elif students_details['level'] == 'novice+':
             novice_plus_students.append(students_details)
         junior_students.append(students_details)
+    return novice_students, novice_plus_students, junior_students
 
-    pprint(novice_students)
-    pprint(novice_plus_students)
-    pprint(junior_students)
+
+def fill_groups(students_level, groups):
+    for group_details in groups.values():
+        for student in students_level:
+            if not student['grouped'] and len(group_details['group']) < 3 and group_details['time_from'] == student['time_from']:
+                group_details['group'].append(student['tg_username'])
+                student['grouped'] = True
 
 
 def main():
@@ -122,7 +111,10 @@ def main():
     students = get_students(students_file)
     managers = get_managers(managers_file)
     groups = create_groups(managers)
-    fill_groups(students, groups)
+    for students_level in get_students_level(students):
+        fill_groups(students_level, groups)
+    pprint(groups)
+
 
 if __name__ == '__main__':
     main()    
