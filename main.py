@@ -115,6 +115,14 @@ def fill_groups(students_level, groups):
                 student['grouped'] = True
 
 
+def get_ungrouped_student(students):
+    ungrouped_student = []
+    for student_name, student_details in students.items():
+        if not student_details['grouped']:
+            ungrouped_student.append([student_name, student_details])
+    return ungrouped_student
+
+
 def main():
     students_file = 'students.json'
     managers_file = 'managers.json'
@@ -123,8 +131,7 @@ def main():
     groups = create_groups(managers)
     for students_level in get_students_level(students):
         fill_groups(students_level, groups)
-    pprint(groups)
-
+    ungrouped_student = get_ungrouped_student(students)
 
 if __name__ == '__main__':
     main()    
