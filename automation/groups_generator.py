@@ -45,12 +45,6 @@ def fill_groups(groups, students):
         group.save()
 
 
-def get_ungrouped_student(project_id):
-    ungrouped_student = []
-    for student in Student.objects.all():
-        has_group = bool(student.group_set.filter(project=project_id))
-
-        if not has_group:
-            ungrouped_student.append(student)
-    return ungrouped_student
+def get_ungrouped_students(project_id):
+    return Student.objects.all().exclude(group__project=project_id)
     

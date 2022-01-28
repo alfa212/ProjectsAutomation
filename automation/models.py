@@ -86,3 +86,17 @@ class Group(models.Model):
             name=self.manager.name,
             tg=self.manager.tg_username
         )
+
+
+class LonelyStudent(models.Model):
+    project = models.ForeignKey(
+        Project,
+        verbose_name='Проект',
+        on_delete=models.CASCADE
+    )
+
+    student = models.ForeignKey(
+        Student,
+        verbose_name='Студент',
+        on_delete=models.CASCADE,
+    )

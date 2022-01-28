@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 
 
-from .models import Student, Manager, Group, Project
+from .models import Student, Manager, Group, Project, LonelyStudent
 from .forms import StudentImportForm
 from .groups_generator import create_groups, fill_groups
 
@@ -141,7 +141,7 @@ class GroupsInlines(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'generate_button')
+    list_display = ('name', 'generate_button', 'has_lonely_students')
     inlines = [GroupsInlines]
 
     def get_urls(self):
@@ -167,9 +167,22 @@ class ProjectAdmin(admin.ModelAdmin):
             '<a class="button" href="{}">Генерировать группы</a>',
             reverse('admin:group-generate', args=[obj.pk]),
         )
+    generate_button.short_description = 'Сгенерировать группы'
+
+
+    def has_lonely_students(self, obj):
+        if obj.lonelystudent_set.all() and obj.group_set.all():
+            url = '{}?project__id__exact={}'.format(reverse('admin:automation_lonelystudent_changelist'), obj.pk)
+
+            return format_html(
+                f'<a class="button" href="{url}">Смотреть студентов</a>',
+            )
+
+    has_lonely_students.short_description = 'Нераспределенные студенты'
 
 
     def generate_groups(self, request, project_id):
+        project = Project.objects.get(pk=project_id)
         groups = create_groups(project_id)
         levels = Student.Level.choices
         redirect_url = '{}?project__id__exact={}'.format(reverse('admin:automation_group_changelist'), project_id)
@@ -179,4 +192,16 @@ class ProjectAdmin(admin.ModelAdmin):
             students = Student.objects.filter(level=level_value)
             fill_groups(groups, students)
 
+        for lonely_student in Student.objects.all().exclude(group__project=project_id):
+            LonelyStudent(
+                project=project,
+                student=lonely_student,
+            ).save()
+
         return HttpResponseRedirect(redirect_url)
+
+
+@admin.register(LonelyStudent)
+class LonelyStudentAdmin(admin.ModelAdmin):
+    list_display = ('project', 'student')
+    list_filter = ['project']
