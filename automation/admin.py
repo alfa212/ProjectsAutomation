@@ -1,11 +1,13 @@
 from django.contrib import admin
-from django.urls import re_path
+from django.urls import re_path, reverse
 from django.template.response import TemplateResponse
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 
+
 from .models import Student, Manager, Group, Project
 from .forms import StudentImportForm
+from .groups_generator import create_groups, fill_groups
 
 
 @admin.register(Student)
@@ -117,4 +119,64 @@ class GroupAdmin(admin.ModelAdmin):
     show_students.allow_tags = True
 
 
-admin.site.register(Project)
+class GroupsInlines(admin.TabularInline):
+    model = Group
+    fields = ('time', 'manager', 'show_students')
+    readonly_fields = ('show_students',)
+
+
+    def show_students(self, obj):
+        return format_html('<br/>'.join([str(student) for student in obj.students.all()]))
+
+    show_students.short_description = 'Студенты'
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'generate_button')
+    inlines = [GroupsInlines]
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            re_path(
+                r'^(?P<project_id>.+)/generate/$',
+                self.admin_site.admin_view(self.generate_groups),
+                name='group-generate',
+            ),
+        ]
+        return custom_urls + urls
+        
+
+    def generate_button(self, obj):
+        if obj.group_set.all():
+            url = '{}?project__id__exact={}'.format(reverse('admin:automation_group_changelist'), obj.pk)
+
+            return format_html(
+                f'<a class="button" href="{url}">Смотреть группы</a>',
+            );
+        return format_html(
+            '<a class="button" href="{}">Генерировать группы</a>',
+            reverse('admin:group-generate', args=[obj.pk]),
+        )
+
+
+    def generate_groups(self, request, project_id):
+        groups = create_groups(project_id)
+        levels = Student.Level.choices
+        redirect_url = '{}?project__id__exact={}'.format(reverse('admin:automation_group_changelist'), project_id)
+
+        for level in levels:
+            level_value = level[0]
+            students = Student.objects.filter(level=level_value)
+            fill_groups(groups, students)
+
+        return HttpResponseRedirect(redirect_url)
