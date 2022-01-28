@@ -116,10 +116,10 @@ def fill_groups(students_level, groups):
 
 
 def get_ungrouped_student(students):
-    ungrouped_student = []
+    ungrouped_student = {}
     for student_name, student_details in students.items():
         if not student_details['grouped']:
-            ungrouped_student.append([student_name, student_details])
+            ungrouped_student[student_name] = student_details
     return ungrouped_student
 
 
@@ -157,6 +157,7 @@ def main():
         fill_groups(students_level, groups)
     ungrouped_student = get_ungrouped_student(students)
     free_groups = get_free_groups_time(groups)
+
 
 if __name__ == '__main__':
     main()    
