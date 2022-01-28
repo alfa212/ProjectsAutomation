@@ -57,6 +57,7 @@ class StudentAdmin(admin.ModelAdmin):
             context,
         )
 
+
 @admin.register(Manager)
 class ManagerAdmin(admin.ModelAdmin):
     change_list_template = "admin/model_change_list.html"
@@ -103,5 +104,7 @@ class ManagerAdmin(admin.ModelAdmin):
             'admin/import_form.html',
             context,
         )
+
+
 admin.site.register(Group)
 admin.site.register(Project)

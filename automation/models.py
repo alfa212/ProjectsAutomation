@@ -58,7 +58,19 @@ class Manager(models.Model):
         )
 
 
+class Project(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название проекта')
+
+    def __str__(self):
+        return self.name
+
+
 class Group(models.Model):
+    project = models.ForeignKey(
+        Project,
+        verbose_name='Проект',
+        on_delete=models.CASCADE,
+    )
     time = models.TimeField(verbose_name='Время созвона')
     manager = models.ForeignKey(
         Manager,
@@ -68,15 +80,9 @@ class Group(models.Model):
     students = models.ManyToManyField(Student, verbose_name='Студенты')
 
     def __str__(self):
-        return '[{time}] {name} ({tg})'.format(
+        return '[{project}] [{time}] {name} ({tg})'.format(
+            project=self.project.name,
             time=self.time.isoformat(timespec='minutes'),
             name=self.manager.name,
             tg=self.manager.tg_username
         )
-
-class Project(models.Model):
-    name = models.CharField(max_length=255, verbose_name='Название проекта')
-    groups = models.ManyToManyField(Group, verbose_name='Группы', blank=True)
-
-    def __str__(self):
-        return self.name
