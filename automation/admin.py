@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import re_path
 from django.template.response import TemplateResponse
 from django.http import HttpResponseRedirect
+from django.utils.html import format_html
 
 from .models import Student, Manager, Group, Project
 from .forms import StudentImportForm
@@ -9,7 +10,7 @@ from .forms import StudentImportForm
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    change_list_template = "admin/model_change_list.html"
+    change_list_template = 'admin/model_change_list.html'
     list_display = ('tg_username', 'name', 'level')
     list_filter = ['level']
 
@@ -49,7 +50,7 @@ class StudentAdmin(admin.ModelAdmin):
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
         context['form'] = form
-        context['title'] = "Импорт студентов"
+        context['title'] = 'Импорт студентов'
 
         return TemplateResponse(
             request,
@@ -60,7 +61,7 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(Manager)
 class ManagerAdmin(admin.ModelAdmin):
-    change_list_template = "admin/model_change_list.html"
+    change_list_template = 'admin/model_change_list.html'
     list_display = ('tg_username', 'name', 'time_from', 'time_to')
 
     def get_urls(self):
@@ -97,7 +98,7 @@ class ManagerAdmin(admin.ModelAdmin):
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
         context['form'] = form
-        context['title'] = "Импорт менеджеров"
+        context['title'] = 'Импорт менеджеров'
 
         return TemplateResponse(
             request,
@@ -105,6 +106,15 @@ class ManagerAdmin(admin.ModelAdmin):
             context,
         )
 
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('project', 'time', 'manager', 'show_students')
+    list_filter = ['project']
 
-admin.site.register(Group)
+    def show_students(self, obj):
+        return format_html('<br/>'.join([str(student) for student in obj.students.all()]))
+    show_students.short_description = 'Студенты'
+    show_students.allow_tags = True
+
+
 admin.site.register(Project)
