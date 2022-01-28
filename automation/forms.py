@@ -22,7 +22,7 @@ class ImportActionForm(forms.Form):
 class StudentImportForm(ImportActionForm):
     def form_action(self):
         return json.loads(self.cleaned_data['file_json'].read())
-        
+
 
 class ManagerImportForm(ImportActionForm):
     def form_action(self):

@@ -50,7 +50,7 @@ class StudentAdmin(admin.ModelAdmin):
         context['opts'] = self.model._meta
         context['form'] = form
         context['title'] = "Импорт студентов"
-        
+
         return TemplateResponse(
             request,
             'admin/import_form.html',
@@ -98,7 +98,7 @@ class ManagerAdmin(admin.ModelAdmin):
         context['opts'] = self.model._meta
         context['form'] = form
         context['title'] = "Импорт менеджеров"
-        
+
         return TemplateResponse(
             request,
             'admin/import_form.html',
