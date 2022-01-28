@@ -3,8 +3,10 @@ import re
 import datetime as dt
 from pprint import pprint
 
+
 def get_time_from_message(message):
     time_periods = re.findall(r'\d+[\s]?[\D\W]?[\s]?\d+', message)
+    priority_time = (dt.time(8, 0), dt.time(21, 0))
     if time_periods:
         for time in time_periods:
             if len(time) == 2:
@@ -12,15 +14,14 @@ def get_time_from_message(message):
             elif ':' in time:
                 time_from = dt.datetime.strptime(time, '%H:%M').time()
                 delta = dt.timedelta(minutes=30)
-                time_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from)+ delta).time()
+                time_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from) + delta).time()
                 priority_time = time_from, time_to
             elif '-' in time:
                 split_time = time.split('-')
                 time_from = dt.datetime.strptime(f'{split_time[0].strip()}:00', '%H:%M').time()
                 time_to = dt.datetime.strptime(f'{split_time[-1].strip()}:00', '%H:%M').time()
                 priority_time = time_from, time_to
-            return priority_time
-    return dt.time(8,0), dt.time(21,0)
+    return priority_time
 
 
 def get_students(file):
@@ -49,7 +50,7 @@ def get_students(file):
 
 def get_managers(file):
     with open(file, 'r') as fin:
-        managers= json.load(fin)
+        managers = json.load(fin)
     product_managers = {}
     for manager in managers:
         name = manager['name']
