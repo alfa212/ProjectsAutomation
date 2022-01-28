@@ -16,13 +16,4 @@ class Migration(migrations.Migration):
             name='time',
             field=models.TimeField(blank=True, null=True, verbose_name='Время созвона'),
         ),
-        migrations.CreateModel(
-            name='Group',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time', models.TimeField(verbose_name='Время созвона')),
-                ('manager', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='automation.manager', verbose_name='ПМ')),
-                ('students', models.ManyToManyField(to='automation.Student', verbose_name='Студенты')),
-            ],
-        ),
     ]
