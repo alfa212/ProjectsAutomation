@@ -123,6 +123,30 @@ def get_ungrouped_student(students):
     return ungrouped_student
 
 
+def get_free_groups_time(groups):
+    free_groups = []
+    for group_name, group_details in groups.items():
+        if not group_details['group']:
+            free_group = {
+                'name': group_name,
+                'level': '',
+                'time_from': group_details['time_from'],
+                'time_to': group_details['time_to'],
+                'free_space': 3,
+            }
+            free_groups.append(free_group)
+        elif len(group_details['group']) < 3:
+            free_group = {
+                'name': group_name,
+                'level': group_details['group'][0]['level'],
+                'time_from': group_details['time_from'],
+                'time_to': group_details['time_to'],
+                'free_space': 3 - len(group_details['group']),
+            }
+            free_groups.append(free_group)
+    return free_groups
+
+
 def main():
     students_file = 'students.json'
     managers_file = 'managers.json'
@@ -132,6 +156,7 @@ def main():
     for students_level in get_students_level(students):
         fill_groups(students_level, groups)
     ungrouped_student = get_ungrouped_student(students)
+    free_groups = get_free_groups_time(groups)
 
 if __name__ == '__main__':
     main()    
