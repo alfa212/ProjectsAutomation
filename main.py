@@ -42,7 +42,7 @@ def get_students(file):
             'is_far_east': is_far_east,
             'time_from': time_from,
             'time_to': time_to,
-            'grouped' : False,
+            'grouped': False,
         }
     return all_students
 
@@ -100,8 +100,17 @@ def get_students_level(students):
 def fill_groups(students_level, groups):
     for group_details in groups.values():
         for student in students_level:
-            if not student['grouped'] and len(group_details['group']) < 3 and group_details['time_from'] == student['time_from']:
-                group_details['group'].append(student['tg_username'])
+            if len(group_details['group']) == 0:
+                if not student['grouped'] and (
+                        len(group_details['group']) < 3) and (
+                        group_details['time_from'] == student['time_from']):
+                    group_details['group'].append(student)
+                    student['grouped'] = True
+            if not student['grouped'] and (
+                    len(group_details['group']) < 3) and (
+                    group_details['time_from'] == student['time_from']) and (
+                    group_details['group'][0]['level'] == student['level']):
+                group_details['group'].append(student)
                 student['grouped'] = True
 
 
