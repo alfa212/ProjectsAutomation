@@ -104,12 +104,14 @@ def fill_groups(students_level, groups):
             if len(group_details['group']) == 0:
                 if not student['grouped'] and (
                         len(group_details['group']) < 3) and (
-                        group_details['time_from'] == student['time_from']):
+                        group_details['time_from'] >= student['time_from']) and (
+                        group_details['time_to'] <= student['time_to']):
                     group_details['group'].append(student)
                     student['grouped'] = True
             if not student['grouped'] and (
                     len(group_details['group']) < 3) and (
-                    group_details['time_from'] == student['time_from']) and (
+                    group_details['time_from'] >= student['time_from']) and (
+                    group_details['time_to'] <= student['time_to']) and (
                     group_details['group'][0]['level'] == student['level']):
                 group_details['group'].append(student)
                 student['grouped'] = True
