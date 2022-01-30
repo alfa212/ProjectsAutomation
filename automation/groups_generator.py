@@ -28,16 +28,24 @@ def create_groups(project_id):
 
 def fill_groups(groups, students):
     for group in groups:
+        time_from = dt.datetime.combine(dt.date(1, 1, 1), group.time)
+        time_to = time_from + dt.timedelta(minutes=30)
         for student in students:
             has_group = bool(student.group_set.filter(project=group.project.pk))
+            student_time_from = dt.datetime.combine(dt.date(1, 1, 1), student.time)
+            student_time_to = student_time_from + dt.timedelta(minutes=30)
             if not group.students.all():
                 if not has_group and (
                         len(group.students.all()) < 3) and (
-                        group.time == student.time):
+                        time_from >= student_time_from) and (
+                            time_to <= student_time_to
+                        ):
                     group.students.add(student)
             if not has_group and (
                     len(group.students.all()) < 3) and (
-                    group.time == student.time) and (
+                    time_from >= student_time_from) and (
+                        time_to <= student_time_to
+                    ) and (
                     group.students.all()[0].level == student.level):
                 group.students.add(student)
 
