@@ -29,9 +29,6 @@ class StudentAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def import_students(self, request):
-        context = self.admin_site.each_context(request)
-        context['title'] = 'Импорт студентов'
-
         if request.method != 'POST':
             form = StudentImportForm()
         else:
@@ -55,6 +52,7 @@ class StudentAdmin(admin.ModelAdmin):
                 else:
                     return HttpResponseRedirect('../')
 
+        context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
         context['form'] = form
         context['title'] = 'Импорт студентов'
@@ -91,16 +89,18 @@ class ManagerAdmin(admin.ModelAdmin):
 
             if form.is_valid():
                 managers = form.save()
-
-                for manager in managers:
-                    Manager.objects.update_or_create(
-                        tg_username=manager['tg_username'],
-                        name=manager['name'],
-                        time_from=manager['time_from'],
-                        time_to=manager['time_to']
-                    )
-
-                return HttpResponseRedirect('../')
+                try:
+                    for manager in managers:
+                        Manager.objects.update_or_create(
+                            tg_username=manager['tg_username'],
+                            name=manager['name'],
+                            time_from=manager['time_from'],
+                            time_to=manager['time_to']
+                        )
+                except KeyError:
+                    form.add_error('file_json', 'Неверный формат JSON')
+                else:
+                    return HttpResponseRedirect('../')
 
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
