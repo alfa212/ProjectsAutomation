@@ -2,6 +2,7 @@
 {% load i18n admin_modify %}
 {% block content %}
 <div id="content-main">
+  {{errors}}
   <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <fieldset class="module aligned">

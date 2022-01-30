@@ -22,7 +22,8 @@ class Student(models.Model):
     discord_username = models.CharField(
         max_length=255,
         verbose_name='Discord',
-        blank=True
+        blank=True,
+        null=True
     )
     is_far_east = models.BooleanField(verbose_name='Ученик с ДВ')
     time = models.TimeField(

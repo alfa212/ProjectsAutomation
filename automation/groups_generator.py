@@ -32,8 +32,16 @@ def fill_groups(groups, students):
         time_to = time_from + dt.timedelta(minutes=30)
         for student in students:
             has_group = bool(student.group_set.filter(project=group.project.pk))
-            student_time_from = dt.datetime.combine(dt.date(1, 1, 1), student.time)
-            student_time_to = student_time_from + dt.timedelta(minutes=30)
+            if student.time:
+                student_time_from = dt.datetime.combine(
+                    dt.date(1, 1, 1),
+                    student.time
+                )
+                student_time_to = student_time_from + dt.timedelta(minutes=30)
+            else:
+                student_time_from = dt.datetime(1, 1, 1, 8)
+                student_time_to = dt.datetime(1, 1, 1, 21)
+            
             if not group.students.all():
                 if not has_group and (
                         len(group.students.all()) < 3) and (

@@ -29,6 +29,9 @@ class StudentAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def import_students(self, request):
+        context = self.admin_site.each_context(request)
+        context['title'] = 'Импорт студентов'
+
         if request.method != 'POST':
             form = StudentImportForm()
         else:
@@ -37,19 +40,21 @@ class StudentAdmin(admin.ModelAdmin):
             if form.is_valid():
                 students = form.save()
 
-                for student in students:
-                    Student.objects.update_or_create(
-                        tg_username=student['tg_username'],
-                        name=student['name'],
-                        level=student['level'],
-                        discord_username=student['discord_username'],
-                        is_far_east=student['is_far_east'],
-                        time=student['time_from']
-                    )
+                try:
+                    for student in students:
+                        Student.objects.update_or_create(
+                            tg_username=student['tg_username'],
+                            name=student['name'],
+                            level=student['level'],
+                            discord_username=student.get('discord_username', None),
+                            is_far_east=student.get('is_far_east', False),
+                            time=student.get('time_from', None),
+                        )
+                except KeyError:
+                    form.add_error('file_json', 'Неверный формат JSON')
+                else:
+                    return HttpResponseRedirect('../')
 
-                return HttpResponseRedirect('../')
-
-        context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
         context['form'] = form
         context['title'] = 'Импорт студентов'
@@ -186,6 +191,7 @@ class ProjectAdmin(admin.ModelAdmin):
         groups = create_groups(project_id)
         levels = Student.Level.choices
         redirect_url = '{}?project__id__exact={}'.format(reverse('admin:automation_group_changelist'), project_id)
+        LonelyStudent.objects.filter(project=project).delete()
 
         for level in levels:
             level_value = level[0]
