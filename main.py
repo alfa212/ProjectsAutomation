@@ -149,6 +149,28 @@ def get_free_groups_time(groups):
     return free_groups
 
 
+def create_messages_for_students(students, groups):
+    messages_details = {}
+    for name, student_details in students.items():
+        groups_name = []
+        groups_time = []
+        for group in groups:
+            if group['free_space'] == 3 or (group['free_space'] < 3 and group['level'] == student_details['level']):
+                groups_name.append(group['name'])
+                groups_time.append((group['time_from']).strftime('%H:%M'))
+            messages_details[name] = {
+                'tg_username': student_details['tg_username'],
+                'groups_name': groups_name,
+                'groups_time': groups_time,
+            }
+    messages = {}
+    for student_name, message_details in messages_details.items():
+        message = f'{student_name}, можем предложить группы с началом в следующее время: ' \
+                  f'{", ".join(message_details["groups_time"])}'
+        messages[message_details['tg_username']] = message
+    return messages
+
+
 def main():
     students_file = 'students.json'
     managers_file = 'managers.json'
@@ -159,6 +181,7 @@ def main():
         fill_groups(students_level, groups)
     ungrouped_student = get_ungrouped_student(students)
     free_groups = get_free_groups_time(groups)
+    messages = create_messages_for_students(ungrouped_student, free_groups)
 
 
 if __name__ == '__main__':
