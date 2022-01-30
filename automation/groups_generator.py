@@ -1,4 +1,3 @@
-import re
 import datetime as dt
 
 from .models import Manager, Group, Student, Project
@@ -47,4 +46,3 @@ def fill_groups(groups, students):
 
 def get_ungrouped_students(project_id):
     return Student.objects.all().exclude(group__project=project_id)
-    
