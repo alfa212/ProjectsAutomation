@@ -6,6 +6,8 @@ services:
     volumes:
       - .:/app
     command: python manage.py run_tg_bot
+    depends_on:
+      - web
   web:
     build: .
     command: >
@@ -17,5 +19,3 @@ services:
      - .env
     ports:
       - "${PORT}:8000"
-    depends_on:
-      - bot
