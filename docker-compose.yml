@@ -1,0 +1,21 @@
+version: "3.9"
+   
+services:
+  bot:
+    build: .
+    volumes:
+      - .:/app
+    command: python manage.py run_tg_bot
+  web:
+    build: .
+    command: >
+      bash -c "python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    env_file:
+     - .env
+    ports:
+      - "${PORT}:8000"
+    depends_on:
+      - bot
