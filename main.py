@@ -3,8 +3,10 @@ import re
 import datetime as dt
 from pprint import pprint
 
+
 def get_time_from_message(message):
     time_periods = re.findall(r'\d+[\s]?[\D\W]?[\s]?\d+', message)
+    priority_time = (dt.time(8, 0), dt.time(21, 0))
     if time_periods:
         for time in time_periods:
             if len(time) == 2:
@@ -12,15 +14,14 @@ def get_time_from_message(message):
             elif ':' in time:
                 time_from = dt.datetime.strptime(time, '%H:%M').time()
                 delta = dt.timedelta(minutes=30)
-                time_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from)+ delta).time()
+                time_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from) + delta).time()
                 priority_time = time_from, time_to
             elif '-' in time:
                 split_time = time.split('-')
                 time_from = dt.datetime.strptime(f'{split_time[0].strip()}:00', '%H:%M').time()
                 time_to = dt.datetime.strptime(f'{split_time[-1].strip()}:00', '%H:%M').time()
                 priority_time = time_from, time_to
-            return priority_time
-    return dt.time(8,0), dt.time(21,0)
+    return priority_time
 
 
 def get_students(file):
@@ -33,8 +34,8 @@ def get_students(file):
         tg_username = student['tg_username']
         discord_username = student['discord_username']
         is_far_east = student['is_far_east']
-        time_from = student['time_from']
-        time_to = student['time_to']
+        time_from = dt.datetime.strptime(student['time_from'], '%H:%M').time()
+        time_to = dt.datetime.strptime(student['time_to'], '%H:%M').time()
         all_students[f'{name}'] = {
             'level': level,
             'tg_username': tg_username,
@@ -42,13 +43,14 @@ def get_students(file):
             'is_far_east': is_far_east,
             'time_from': time_from,
             'time_to': time_to,
+            'grouped': False,
         }
     return all_students
 
 
 def get_managers(file):
     with open(file, 'r') as fin:
-        managers= json.load(fin)
+        managers = json.load(fin)
     product_managers = {}
     for manager in managers:
         name = manager['name']
@@ -63,36 +65,124 @@ def get_managers(file):
     return product_managers
 
 
-def make_study_groups(managers):
+def create_groups(managers):
+    groups = {}
     for manager_name, manager_work_details in managers.items():
         time_from = manager_work_details['time_from']
         time_to = manager_work_details['time_to']
         tg_username = manager_work_details['tg_username']
         delta = dt.datetime.combine(dt.date(1, 1, 1), time_to) - dt.datetime.combine(dt.date(1, 1, 1), time_from)
         periods = delta.seconds // 3600 * 60 // 30
-        groups = {}
         for period in range(1, periods + 1):
             time_period_to = (dt.datetime.combine(dt.date(1, 1, 1), time_from) + dt.timedelta(minutes=30)).time()
             groups[f'{manager_name}_{period}'] = {
                 'product_manager': tg_username,
-                'time': f'{time_from} - {time_period_to}',
+                'time_from': time_from,
+                'time_to': time_period_to,
                 'group': []
             }
             time_from = time_period_to
-        pprint(groups)
+    return groups
 
+
+def get_students_level(students):
+    novice_students = []
+    novice_plus_students = []
+    junior_students = []
+    for students_details in students.values():
+        if students_details['level'] == 'novice':
+            novice_students.append(students_details)
+        elif students_details['level'] == 'novice+':
+            novice_plus_students.append(students_details)
+        junior_students.append(students_details)
+    return novice_students, novice_plus_students, junior_students
+
+
+def fill_groups(students_level, groups):
+    for group_details in groups.values():
+        for student in students_level:
+            if len(group_details['group']) == 0:
+                if not student['grouped'] and (
+                        len(group_details['group']) < 3) and (
+                        group_details['time_from'] >= student['time_from']) and (
+                        group_details['time_to'] <= student['time_to']):
+                    group_details['group'].append(student)
+                    student['grouped'] = True
+            if not student['grouped'] and (
+                    len(group_details['group']) < 3) and (
+                    group_details['time_from'] >= student['time_from']) and (
+                    group_details['time_to'] <= student['time_to']) and (
+                    group_details['group'][0]['level'] == student['level']):
+                group_details['group'].append(student)
+                student['grouped'] = True
+
+
+def get_ungrouped_student(students):
+    ungrouped_student = {}
+    for student_name, student_details in students.items():
+        if not student_details['grouped']:
+            ungrouped_student[student_name] = student_details
+    return ungrouped_student
+
+
+def get_free_groups_time(groups):
+    free_groups = []
+    for group_name, group_details in groups.items():
+        if not group_details['group']:
+            free_group = {
+                'name': group_name,
+                'level': '',
+                'time_from': group_details['time_from'],
+                'time_to': group_details['time_to'],
+                'free_space': 3,
+            }
+            free_groups.append(free_group)
+        elif len(group_details['group']) < 3:
+            free_group = {
+                'name': group_name,
+                'level': group_details['group'][0]['level'],
+                'time_from': group_details['time_from'],
+                'time_to': group_details['time_to'],
+                'free_space': 3 - len(group_details['group']),
+            }
+            free_groups.append(free_group)
+    return free_groups
+
+
+def create_messages_for_students(students, groups):
+    messages_details = {}
+    for name, student_details in students.items():
+        groups_name = []
+        groups_time = []
+        for group in groups:
+            if group['free_space'] == 3 or (group['free_space'] < 3 and group['level'] == student_details['level']):
+                groups_name.append(group['name'])
+                groups_time.append((group['time_from']).strftime('%H:%M'))
+            messages_details[name] = {
+                'tg_username': student_details['tg_username'],
+                'groups_name': groups_name,
+                'groups_time': groups_time,
+            }
+    messages = {}
+    for student_name, message_details in messages_details.items():
+        message = f'{student_name}, можем предложить группы с началом в следующее время: ' \
+                  f'{", ".join(message_details["groups_time"])}'
+        messages[message_details['tg_username']] = message
+    return messages
 
 
 def main():
     students_file = 'students.json'
     managers_file = 'managers.json'
-    # students = get_students(students_file)
+    students = get_students(students_file)
     managers = get_managers(managers_file)
-    # with open('message.txt') as fin:
-    #     message = fin.read()
-    # print(get_time_from_message(message))
-    make_study_groups(managers)
+    groups = create_groups(managers)
+    for students_level in get_students_level(students):
+        fill_groups(students_level, groups)
+    ungrouped_student = get_ungrouped_student(students)
+    free_groups = get_free_groups_time(groups)
+    messages = create_messages_for_students(ungrouped_student, free_groups)
 
 
 if __name__ == '__main__':
-    main()    
+    main()
